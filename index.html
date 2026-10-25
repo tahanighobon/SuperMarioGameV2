@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Hollow Crown — A Gothic Halloween Adventure</title>
+<style>
+:root{--gold:#ffb45f;--violet:#b78cff;--ink:#080a19;--panel:#101326eF;--line:#b58a68}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080a19;color:#fff;font-family:Georgia,"Palatino Linotype",serif}
+#stage{position:relative;width:100vw;height:100vh;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 20%,#282044,#080a19 70%)}
+canvas{width:min(100vw,177.78vh);height:min(56.25vw,100vh);display:block;box-shadow:0 0 90px #000;border:1px solid #5e4269}
+#hud{display:none;position:absolute;inset:0;pointer-events:none;font-family:Georgia,serif}
+.top{position:absolute;left:2.5%;right:2.5%;top:2.5%;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.hudbox{background:linear-gradient(135deg,#090b1ddd,#1a1429e8);border:1px solid #c89b7a88;border-radius:7px;padding:9px 13px;box-shadow:0 4px 18px #0008;font-size:clamp(10px,1.1vw,15px);letter-spacing:.05em;text-shadow:0 2px #000}
+.hudbox small{display:block;color:#d2a77d;font-size:.68em;letter-spacing:.19em;margin-bottom:4px}
+#hearts{color:#ff647b;letter-spacing:3px;font-size:1.15em}#progress{position:absolute;bottom:3%;left:30%;right:30%;height:6px;background:#090b1dbb;border:1px solid #c89b7a77;border-radius:9px;overflow:hidden}#fill{height:100%;width:0;background:linear-gradient(90deg,#a66cff,#ffb45f)}
+#toast{position:absolute;top:14%;left:50%;transform:translateX(-50%);padding:9px 16px;border:1px solid #e5b17d;background:#100d20ed;color:#ffcc8a;opacity:0;white-space:nowrap;font-size:clamp(11px,1.1vw,15px);letter-spacing:.12em;transition:opacity .2s}
+#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#070817a8,#07081755,#070817b8);padding:18px}
+.panel{position:relative;overflow:hidden;width:min(600px,94vw);padding:clamp(22px,4vw,44px);text-align:center;background:linear-gradient(145deg,#17172cf5,#080b19f5);border:1px solid #bd8d6d;box-shadow:0 0 0 5px #080a19a8,0 0 60px #000;border-radius:4px}
+.panel:before,.panel:after{content:"✦";position:absolute;color:#ffb45f;font-size:20px;top:12px}.panel:before{left:14px}.panel:after{right:14px}
+.eyebrow{color:#c7a1d9;font-size:10px;font-weight:bold;letter-spacing:.32em;text-transform:uppercase}
+h1{font-size:clamp(38px,7vw,76px);line-height:.88;margin:17px 0 13px;text-transform:uppercase;letter-spacing:-.045em;color:#f7dfbd;text-shadow:0 3px #4c273f,0 0 22px #a15bcf66;font-weight:normal}
+h1 span{display:block;color:#ffad5d;font-size:.78em;letter-spacing:.09em;margin-top:9px}
+.subtitle{color:#d1c7d9;line-height:1.7;max-width:440px;margin:0 auto 22px;font-size:clamp(13px,1.5vw,16px)}
+.rule{height:1px;background:linear-gradient(90deg,transparent,#b58a68,transparent);margin:20px auto;max-width:330px}
+.buttons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;letter-spacing:.12em;text-transform:uppercase;font-size:11px;padding:14px 21px;border:1px solid #c18d63;background:#20182a;color:#f8dfbf;transition:.18s}
+button:hover{transform:translateY(-2px);background:#3a2141;box-shadow:0 0 20px #a75fd655}
+.primary{background:linear-gradient(135deg,#ffcc83,#d87546);color:#190e1a;border:1px solid #ffe0a7;font-weight:bold}
+.controls{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:20px;color:#bdb1cb;font:11px system-ui,sans-serif}
+kbd{border:1px solid #8b718f;background:#17162a;padding:4px 7px;border-radius:3px;color:#ffe1b4;font:10px system-ui,sans-serif}
+#touch{display:none;position:absolute;left:15px;right:15px;bottom:17px;justify-content:space-between;pointer-events:none}
+#touch div{display:flex;gap:8px}#touch button{pointer-events:auto;touch-action:none;width:52px;height:52px;border-radius:50%;padding:0;background:#0d0c20b8;border:1px solid #d8b18a;color:#ffe3c0;font-size:18px}
+@media(pointer:coarse){#touch{display:flex}}
+</style></head>
+<body><div id="stage"><canvas id="game" width="960" height="540"></canvas>
+<div id="hud"><div class="top">
+<div class="hudbox"><small>CHAPTER</small><span id="world">I · THE HAUNTED WOOD</span></div>
+<div class="hudbox"><small>SOUL CANDLES</small>♧ <span id="coins">000</span></div>
+<div class="hudbox"><small>VITALITY</small><span id="hearts">♥ ♥ ♥</span></div>
+<div class="hudbox"><small>THE HOUR</small><span id="time">120</span></div>
+</div><div id="toast">A SOUL CANDLE GATHERED</div><div id="progress"><div id="fill"></div></div></div>
+<div id="overlay"><div class="panel" id="panel">
+<div class="eyebrow">A Halloween folktale in two chapters</div>
+<h1>The Hollow<span>Crown</span></h1>
+<p class="subtitle">When the last bell tolls, the gates of Blackthorn Castle awaken. Guide a young witch through haunted woods and a cursed cathedral to return the stolen moonlight.</p>
+<div class="rule"></div><div class="buttons"><button class="primary" id="start">Enter the Hollow ↗</button><button id="how">Controls & Lore</button></div>
+<div class="controls"><span><kbd>←</kbd> <kbd>→</kbd> Move</span><span><kbd>SPACE</kbd> Jump</span><span><kbd>SHIFT</kbd> Witch dash</span></div>
+</div></div>
+<div id="touch"><div><button id="left">◀</button><button id="right">▶</button></div><div><button id="jump">↑</button><button id="dash">✧</button></div></div>
+</div>
+<script>
+(()=>{'use strict';
+const c=document.getElementById('game'),x=c.getContext('2d'),W=960,H=540,$=id=>document.getElementById(id);
+
+/* =========================================
+   THE HOLLOW CROWN — PROCEDURAL HORROR MUSIC
+   Generated in the browser. No audio files or
+   external libraries are required.
+========================================= */
+let musicContext = null;
+let musicMaster = null;
+let musicTimer = null;
+let musicStarted = false;
+
+function startMusic() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    // Reuse the existing soundtrack when returning to the game.
+    if (musicStarted) {
+        if (musicContext.state === "suspended") musicContext.resume();
+        return;
+    }
+
+    musicContext = new AudioContextClass();
+    musicMaster = musicContext.createGain();
+    musicMaster.gain.value = 0.0001;
+    musicMaster.connect(musicContext.destination);
+    musicStarted = true;
+
+    const ctx = musicContext;
+    ctx.resume();
+
+    // Fade in gently to avoid an abrupt sound.
+    musicMaster.gain.setTargetAtTime(0.16, ctx.currentTime, 2);
+
+    function createDrone(frequency, volume, type) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        osc.type = type;
+        osc.frequency.value = frequency;
+        filter.type = "lowpass";
+        filter.frequency.value = 420;
+        filter.Q.value = 0.7;
+        gain.gain.value = volume;
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(musicMaster);
+        osc.start();
+
+        return { osc, gain };
+    }
+
+    // Low, eerie tones form the haunted-castle ambience.
+    createDrone(55, 0.24, "sine");
+    createDrone(82.41, 0.10, "triangle");
+    createDrone(110.2, 0.035, "sine");
+
+    // Slowly shifting, ghostly wind.
+    const wind = createDrone(165, 0.025, "sine");
+    const windLFO = ctx.createOscillator();
+    const windDepth = ctx.createGain();
+    windLFO.frequency.value = 0.12;
+    windDepth.gain.value = 18;
+    windLFO.connect(windDepth);
+    windDepth.connect(wind.osc.frequency);
+    windLFO.start();
+
+    // Original minor-key bell pattern with long, eerie decay.
+    const notes = [
+        220.00, 261.63, 196.00, 293.66,
+        220.00, 174.61, 261.63, 196.00,
+        329.63, 293.66, 220.00, 196.00
+    ];
+    let noteIndex = 0;
+
+    function playHauntedBell() {
+        if (!musicContext || musicContext.state !== "running") return;
+
+        const now = ctx.currentTime;
+        const freq = notes[noteIndex % notes.length];
+        noteIndex++;
+
+        const bell = ctx.createOscillator();
+        const bellGain = ctx.createGain();
+        const bellFilter = ctx.createBiquadFilter();
+
+        bell.type = "sine";
+        bell.frequency.setValueAtTime(freq, now);
+        bellFilter.type = "lowpass";
+        bellFilter.frequency.value = 1800;
+
+        bellGain.gain.setValueAtTime(0.0001, now);
+        bellGain.gain.exponentialRampToValueAtTime(0.055, now + 0.035);
+        bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+
+        bell.connect(bellFilter);
+        bellFilter.connect(bellGain);
+        bellGain.connect(musicMaster);
+        bell.start(now);
+        bell.stop(now + 2.9);
+
+        // A faint, slightly detuned overtone adds a spectral quality.
+        const overtone = ctx.createOscillator();
+        const overtoneGain = ctx.createGain();
+
+        overtone.type = "sine";
+        overtone.frequency.value = freq * 2.01;
+        overtoneGain.gain.setValueAtTime(0.0001, now);
+        overtoneGain.gain.exponentialRampToValueAtTime(0.009, now + 0.04);
+        overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.7);
+
+        overtone.connect(overtoneGain);
+        overtoneGain.connect(musicMaster);
+        overtone.start(now);
+        overtone.stop(now + 1.8);
+    }
+
+    playHauntedBell();
+    musicTimer = setInterval(playHauntedBell, 1800);
+}
+
+// This can be connected to a mute button if you add one later.
+function toggleMusic() {
+    if (!musicContext || !musicMaster) return;
+
+    const target = musicMaster.gain.value < 0.001 ? 0.16 : 0.0001;
+    musicMaster.gain.setTargetAtTime(target, musicContext.currentTime, 0.12);
+}
+
+let mode='menu',chapter=0,world,coins=0,hearts=3,timeLeft=125,camera=0,last=0,toastLeft=0,particles=[];
+const keys={};let jumpTap=false,dashTap=false;
+const hero={x:65,y:330,w:26,h:38,vx:0,vy:0,ground:false,face:1,inv:0,dash:0,walk:0};
+const maps=[
+{name:'I · THE HAUNTED WOOD',length:2600,sky:['#141a3b','#49345e'],ground:'#28283e',top:'#77836e',
+plats:[[0,440,440,100],[505,390,135,24],[700,340,130,24],[870,410,240,100],[1190,365,125,24],[1370,310,150,24],[1580,390,220,100],[1870,345,130,24],[2050,390,550,100]],
+candles:[[140,395],[245,360],[550,345],[740,295],[925,365],[1010,365],[1230,320],[1420,265],[1650,345],[1730,345],[1910,300],[2110,355],[2250,355],[2390,355]],
+foes:[{x:330,y:414,dir:1,min:280,max:420},{x:960,y:384,dir:-1,min:900,max:1070},{x:1650,y:364,dir:1,min:1600,max:1760},{x:2210,y:364,dir:-1,min:2110,max:2400}],gate:[2475,350]},
+{name:'II · THE CURSED CATHEDRAL',length:2950,sky:['#090c22','#392449'],ground:'#302b42',top:'#a17b8a',
+plats:[[0,440,350,100],[410,380,120,24],[590,325,120,24],[760,390,170,100],[980,335,130,24],[1170,280,130,24],[1360,365,170,100],[1580,315,130,24],[1770,260,150,24],[1980,380,200,100],[2220,325,135,24],[2420,275,135,24],[2610,410,340,100]],
+candles:[[110,395],[225,360],[450,335],[630,280],[800,345],[1030,290],[1210,235],[1410,320],[1620,270],[1820,215],[2050,335],[2260,280],[2460,230],[2700,365],[2820,365]],
+foes:[{x:260,y:414,dir:1,min:180,max:320},{x:810,y:364,dir:-1,min:780,max:900},{x:1400,y:339,dir:1,min:1380,max:1510},{x:2040,y:350,dir:-1,min:2010,max:2150},{x:2700,y:384,dir:1,min:2650,max:2870}],gate:[2820,350]}
+];
+function load(n){chapter=n;world=JSON.parse(JSON.stringify(maps[n]));hero.x=55;hero.y=350;hero.vx=hero.vy=0;hero.inv=1.3;camera=0;timeLeft=n?150:125;updateHud()}
+function updateHud(){$('world').textContent=world.name;$('coins').textContent=String(coins).padStart(3,'0');$('hearts').textContent=hearts>0?'♥ '.repeat(hearts).trim():'—';$('time').textContent=Math.ceil(timeLeft)}
+function say(s){$('toast').textContent=s;$('toast').style.opacity=1;toastLeft=1.6}
+function panel(title,desc,button,action){mode='menu';$('hud').style.display='none';$('overlay').style.display='flex';$('panel').innerHTML=`<div class="eyebrow">THE HOLLOW CROWN · FIELD NOTES</div><h1>${title}</h1><p class="subtitle">${desc}</p><div class="rule"></div><div class="buttons"><button class="primary" id="action">${button}</button></div><div class="controls">A candle for courage. A jump for survival. Keep moving toward the light.</div>`;$('action').onclick=action}
+function start(){startMusic();coins=0;hearts=3;load(0);mode='play';$('overlay').style.display='none';$('hud').style.display='block';last=performance.now()}
+$('start').onclick=start;
+$('how').onclick=()=>panel('The old <span>rules</span>','Move with arrows or A/D. Jump with SPACE, W, or ↑. SHIFT gives you a brief witch-dash. Gather soul candles, land on the heads of shadow imps, and reach the violet gate. Falling into the mist costs a heart. Chapter II waits beyond the gate.','Begin the ritual ↗',start);
+function kd(e){let k=e.key.toLowerCase();if(['arrowleft','arrowright','arrowup',' ','shift'].includes(k))e.preventDefault();keys[k]=true;if(!e.repeat&&([' ','arrowup','w'].includes(k)))jumpTap=true;if(!e.repeat&&k==='shift')dashTap=true}
+function ku(e){keys[e.key.toLowerCase()]=false}addEventListener('keydown',kd);addEventListener('keyup',ku);
+function bind(id,k,fn){let b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;if(fn)fn()});['pointerup','pointerleave','pointercancel'].forEach(v=>b.addEventListener(v,()=>keys[k]=false))}
+bind('left','arrowleft');bind('right','arrowright');bind('jump','arrowup',()=>jumpTap=true);bind('dash','shift',()=>dashTap=true);
+function rect(a,b,w,h,col){x.fillStyle=col;x.fillRect(Math.round(a),Math.round(b),w,h)}
+function rr(a,b,w,h,r,col){x.fillStyle=col;x.beginPath();x.roundRect(a,b,w,h,r);x.fill()}
+function rng(i){return ((Math.sin(i*127.1+chapter*31.7)*43758.5453)%1+1)%1}
+function bg(t){
+let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,world.sky[0]);g.addColorStop(1,world.sky[1]);x.fillStyle=g;x.fillRect(0,0,W,H);
+// moon and bats
+x.save();x.shadowColor='#c6c7ff';x.shadowBlur=25;x.fillStyle='#e6d9c5';x.beginPath();x.arc(770,92,40,0,Math.PI*2);x.fill();x.shadowBlur=0;x.fillStyle=world.sky[0];x.beginPath();x.arc(787,79,35,0,Math.PI*2);x.fill();x.restore();
+for(let i=0;i<12;i++){let bx=(i*113-t*.025)%(W+70);x.fillStyle='#080917';x.beginPath();x.moveTo(bx,65+(i%4)*25);x.quadraticCurveTo(bx+8,48+(i%4)*25,bx+16,66+(i%4)*25);x.quadraticCurveTo(bx+25,50+(i%4)*25,bx+31,66+(i%4)*25);x.lineTo(bx+18,62+(i%4)*25);x.lineTo(bx+15,72+(i%4)*25);x.closePath();x.fill()}
+// distant gothic skyline
+for(let layer=0;layer<3;layer++){let par=.09+layer*.12,base=330+layer*45;x.beginPath();x.moveTo(0,H);for(let a=-20;a<W+60;a+=30){let y=base+Math.sin((a+camera*par)*.008+layer)*27;x.lineTo(a,y)}x.lineTo(W,H);x.closePath();x.fillStyle=['#252441','#1b1c32','#111425'][layer];x.fill();
+for(let i=0;i<7;i++){let bx=((i*171-camera*par)%(W+180)+W+180)%(W+180)-60,by=base-85-(i%3)*25;x.fillStyle=['#252441','#1b1c32','#111425'][layer];x.fillRect(bx,by,34,100);x.beginPath();x.moveTo(bx-5,by);x.lineTo(bx+17,by-38);x.lineTo(bx+39,by);x.fill();x.fillStyle=layer===2?'#d58c56':'#6e496d';for(let j=0;j<3;j++)x.fillRect(bx+7+j*10,by+20,4,10)}}
+// fog bands
+for(let i=0;i<5;i++){let fx=((i*250-t*.018)%(W+250)+W+250)%(W+250)-120;rr(fx,375+i%2*35,160,13,8,chapter?'#a18ac018':'#b4b5d018')}
+}
+function platform(p){let [a,b,w,h]=p,s=a-camera;if(s+w<0||s>W)return;rect(s,b,w,h,'#201e32');rect(s,b,w,7,world.top);rect(s,b+7,w,3,'#111321');for(let q=s+9;q<s+w;q+=31){rect(q,b+21,11,4,'#ffffff0d');rect(q+13,b+43,6,4,'#05061055')}for(let q=s+15;q<s+w;q+=54){rect(q,b-4,4,4,'#9bb18b');rect(q+4,b-6,3,3,'#9bb18b')}}
+function candle(a,b,t){let sx=a-camera,by=b+Math.sin(t*.003+a)*3;if(sx<-20||sx>W+20)return;x.save();x.shadowColor='#ff9c4a';x.shadowBlur=18;x.fillStyle='#ffb45f';x.beginPath();x.ellipse(sx,by,6,9,0,0,Math.PI*2);x.fill();x.shadowBlur=0;rect(sx-3,by+5,6,8,'#f3d7ad');rect(sx-2,by+8,4,2,'#fff0bd');x.restore()}
+function enemy(e){let a=e.x-camera,b=e.y;if(a<-40||a>W+40)return;
+if(chapter===0){rr(a,b+4,30,24,10,'#49405d');x.fillStyle='#ff5c83';x.shadowColor='#ff426e';x.shadowBlur=8;x.fillRect(a+7,b+11,5,3);x.fillRect(a+19,b+11,5,3);x.shadowBlur=0;rect(a+4,b+25,7,4,'#171426');rect(a+20,b+25,7,4,'#171426')}
+else{rr(a+2,b+3,26,24,8,'#51425e');x.fillStyle='#b68bff';x.fillRect(a+7,b+10,5,3);x.fillRect(a+18,b+10,5,3);rect(a+5,b+26,7,4,'#181321');rect(a+20,b+26,7,4,'#181321')}}
+function witch(){let a=hero.x-camera,b=hero.y;x.save();if(hero.inv>0&&Math.floor(performance.now()/90)%2)x.globalAlpha=.35;
+x.shadowColor='#b67aff';x.shadowBlur=hero.dash>0?20:5;
+// cape
+x.fillStyle='#5c2b83';x.beginPath();x.moveTo(a+5,b+16);x.lineTo(a-3,b+33);x.lineTo(a+13,b+29);x.lineTo(a+24,b+36);x.lineTo(a+23,b+15);x.closePath();x.fill();x.shadowBlur=0;
+// legs and boots
+rr(a+5,b+30,8,8,2,'#24182f');rr(a+16,b+30,8,8,2,'#24182f');rr(a+2,b+35,12,4,2,'#100f20');rr(a+15,b+35,12,4,2,'#100f20');
+// dress and face
+rr(a+4,b+13,20,19,5,'#31224b');rr(a+7,b+2,16,17,7,'#f0bf9b');rr(a+5,b,20,7,3,'#241a35');rect(a+5,b+5,20,3,'#241a35');let ex=hero.face>0?a+17:a+8;rect(ex,b+8,3,4,'#1a1831');rect(ex+1,b+8,1,1,'#fff0b7');
+// hat brim and pointed crown
+x.fillStyle='#21182f';x.beginPath();x.moveTo(a-5,b+5);x.lineTo(a+15,b+1);x.lineTo(a+31,b+7);x.lineTo(a+12,b+9);x.closePath();x.fill();x.beginPath();x.moveTo(a+7,b+4);x.lineTo(a+14,b-13);x.lineTo(a+22,b+4);x.closePath();x.fill();rect(a+10,b+2,8,2,'#c78154');
+// lantern
+x.shadowColor='#ffb45f';x.shadowBlur=14;rr(a+(hero.face>0?24:-4),b+18,7,10,2,'#ffb45f');x.shadowBlur=0;rect(a+(hero.face>0?26:-2),b+20,3,6,'#fff0b1');
+x.restore()}
+function gate(a,b,t){let sx=a-camera;x.save();x.shadowColor='#b15cff';x.shadowBlur=24;x.strokeStyle='#d2a2ff';x.lineWidth=4;x.beginPath();x.ellipse(sx,b+27,24+Math.sin(t*.004)*2,33,0,0,Math.PI*2);x.stroke();x.shadowBlur=0;x.fillStyle='#a44cff24';x.beginPath();x.ellipse(sx,b+27,19,27,0,0,Math.PI*2);x.fill();for(let i=0;i<3;i++){x.strokeStyle=`rgba(220,175,255,${.7-i*.15})`;x.lineWidth=1.5;x.beginPath();x.ellipse(sx,b+27,7+i*5,12+i*5,t*.001+i,0,Math.PI*2);x.stroke()}x.restore()}
+function draw(t){bg(t);world.plats.forEach(platform);world.candles.forEach(s=>{if(!s.got)candle(s[0],s[1],t)});world.foes.forEach(enemy);gate(world.gate[0],world.gate[1],t);witch();
+for(let i=0;i<28;i++){let a=(i*79-t*.02)%(W+10);x.fillStyle=i%3?'#c9b4e655':'#ffbd7866';x.fillRect(a,100+(i*61)%370,2,2)}
+}
+function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function hurt(){if(hero.inv>0)return;hearts--;hero.inv=1.6;hero.vy=-300;hero.vx=-hero.face*160;updateHud();say('THE MIST TAKES ITS TOLL');if(hearts<=0)setTimeout(()=>panel('The night <span>claims you</span>','The castle keeps its secrets for now. The lantern can be lit again.','Rise once more ↗',start),400)}
+function update(dt,t){if(mode!=='play')return;timeLeft-=dt;if(timeLeft<=0){hearts--;timeLeft=chapter?150:125;updateHud();say('THE BELL TOLLS AGAIN');if(hearts<=0){panel('The last <span>bell</span>','Midnight has passed. Return to the path and try again.','Begin again',start);return}}
+let d=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0);if(d){hero.vx+=d*1500*dt;hero.face=d}else hero.vx*=Math.pow(.0008,dt);hero.vx=Math.max(-220,Math.min(220,hero.vx));
+if(dashTap){hero.dash=.16;hero.vx=hero.face*480;dashTap=false}hero.dash=Math.max(0,hero.dash-dt);
+if(jumpTap&&hero.ground){hero.vy=-530;hero.ground=false}jumpTap=false;hero.vy=Math.min(740,hero.vy+1400*dt);
+let old=hero.y;hero.x=Math.max(0,Math.min(world.length-hero.w,hero.x+hero.vx*dt));hero.y+=hero.vy*dt;hero.ground=false;
+for(let p of world.plats){let [a,b,w]=p;if(hero.x+hero.w>a&&hero.x<a+w&&old+hero.h<=b+5&&hero.y+hero.h>=b&&hero.vy>=0){hero.y=b-hero.h;hero.vy=0;hero.ground=true}}
+if(hero.y>H+65){hurt();hero.y=270;hero.x=Math.max(10,hero.x-100)}
+for(let e of world.foes){if(e.dead)continue;e.x+=e.dir*38*dt;if(e.x<e.min||e.x>e.max)e.dir*=-1;if(hit(hero,{x:e.x,y:e.y,w:30,h:29})){if(hero.vy>80&&old+hero.h<e.y+15){e.dead=true;hero.vy=-320;coins+=2;say('SHADOW DISPELLED · +2');updateHud()}else hurt()}}
+world.foes=world.foes.filter(e=>!e.dead);
+for(let s of world.candles)if(!s.got&&hit(hero,{x:s[0]-9,y:s[1]-9,w:18,h:20})){s.got=true;coins++;say('SOUL CANDLE GATHERED · +1');updateHud()}
+camera=Math.max(0,Math.min(world.length-W,hero.x-W*.36));$('fill').style.width=(hero.x/(world.length-60)*100)+'%';updateHud();
+if(hit(hero,{x:world.gate[0]-20,y:world.gate[1],w:40,h:64})){if(chapter===0){coins+=5;load(1);hero.inv=1.5;say('THE CATHEDRAL OPENS · +5')}else{panel('The moon is <span>returned</span>',`You escaped the Haunted Wood and the Cursed Cathedral with ${coins} soul candles. Blackthorn's gates fall silent... until next Halloween.`,'Play the tale again ↗',start)}}
+if(hero.inv>0)hero.inv-=dt;if(toastLeft>0){toastLeft-=dt;if(toastLeft<=0)$('toast').style.opacity=0}
+}
+function loop(t){let dt=Math.min(.035,(t-last)/1000||0);last=t;if(mode==='play')update(dt,t);draw(t);requestAnimationFrame(loop)}
+load(0);requestAnimationFrame(loop);
+})();
+</script></body></html>
